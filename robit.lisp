@@ -15,7 +15,7 @@
 (defun make-ping (date nick message)
     (make-instance 'ping :date date :nick nick :message message))
 
-(defparameter current-ping 
+(defparameter *current-ping* 
     (make-ping (get-universal-time) 'ryankarason "hello world!"))
 
 (defun pretty-print (ping-object)
@@ -26,7 +26,7 @@
     (princ (ping-message ping-object))
     (princ #\newline))
 
-(pretty-print current-ping)
+(pretty-print *current-ping*)
 
 (defun evaluate-ping (ping-object)
     (evaluate-message (ping-message ping-object)))
@@ -41,7 +41,7 @@
                 (t nil)))
         (t nil)))
 
-(setf current-ping 
+(setf *current-ping* 
     (make-ping (get-universal-time) 'ryankarason "hello robit, can you evaluate (+ 1 2 (- 3 (* 4 5))) for me?"))
 
-(princ (evaluate-ping current-ping))
+(princ (evaluate-ping *current-ping*))
