@@ -1,4 +1,9 @@
 ;robit.lisp
+(defpackage :robit
+    (:use :common-lisp))
+
+(in-package :robit)
+
 (defclass ping ()
     ((date :accessor ping-date
            :initarg :date)
