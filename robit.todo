@@ -1,0 +1,14 @@
+#todo for robit.lisp
+
+ignore-errors -> handler-case (catch errors and send relevant ones back to caller) 
+    (http://www.lispworks.com/documentation/HyperSpec/Body/m_hand_1.htm)
+parallel-evaluate (allow for multithreading)
+    (http://cl-cookbook.sourceforge.net/process.html)
+sandbox-evaluate
+    #known secruity vulernabilities
+        calling shell scripts
+        infinite loops? (likely handled by parallel processing)
+capture output from shell
+deboot function (add ability to disconnect/reconnect)
+fix bugs
+    see robit.bugs
