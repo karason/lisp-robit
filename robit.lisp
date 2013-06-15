@@ -34,8 +34,8 @@
     (let
         ((current-ping
             (make-ping (get-universal-time) (source ping) (car (last (arguments ping))))))
+        (log-ping current-ping)
         (say (evaluate-ping current-ping))))
-
  
 (defun ping-loop ()
     (read-message-loop *connection*))
@@ -50,6 +50,17 @@
 
 (defun make-ping (date nick message)
     (make-instance 'ping :date date :nick nick :message message))
+
+(defun log-ping (ping-object)
+    (let 
+        ((stream (open "/home/karason/robit/think.log" :direction :output :if-exists :append)))
+        (princ (ping-date ping-object) stream)
+        (princ " <" stream)
+        (princ (ping-nick ping-object) stream)
+        (princ "> " stream)
+        (princ (ping-message ping-object) stream)
+        (princ #\newline stream)
+        (close stream)))
 
 (defun evaluate-ping (ping-object)
     (evaluate-message (ping-message ping-object)))
