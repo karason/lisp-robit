@@ -56,9 +56,25 @@
         ((date-list 
             (multiple-value-list (decode-universal-time (ping-date ping-object)))))
         (concatenate 'string
-            (write-to-string (nth 2 date-list))
+            (let
+                ((hour
+                    (nth 2 date-list)))
+                (cond
+                    ((< hour 10) 
+                        (concatenate 'string
+                        "0"
+                        (write-to-string hour)))
+                    (t (write-to-string hour))))
             ":"
-            (write-to-string (nth 1 date-list))
+            (let
+                ((minute
+                    (nth 1 date-list)))
+                (cond
+                    ((< minute 10) 
+                        (concatenate 'string
+                        "0"
+                        (write-to-string minute)))
+                    (t (write-to-string minute))))
             " <"
             (ping-nick ping-object)
             "> "
