@@ -51,14 +51,24 @@
 (defun make-ping (date nick message)
     (make-instance 'ping :date date :nick nick :message message))
 
+(defun prettify-ping (ping-object)
+    (let 
+        ((date-list 
+            (multiple-value-list (decode-universal-time (ping-date ping-object)))))
+        (concatenate 'string
+            (write-to-string (nth 2 date-list))
+            ":"
+            (write-to-string (nth 1 date-list))
+            " <"
+            (ping-nick ping-object)
+            "> "
+            (ping-message ping-object))))
+ 
 (defun log-ping (ping-object)
     (let 
-        ((stream (open "/home/karason/robit/logs/think.log" :direction :output :if-exists :append :if-does-not-exist :create)))
-        (princ (ping-date ping-object) stream)
-        (princ " <" stream)
-        (princ (ping-nick ping-object) stream)
-        (princ "> " stream)
-        (princ (ping-message ping-object) stream)
+        ((stream 
+            (open "/home/karason/robit/logs/think.log" :direction :output :if-exists :append :if-does-not-exist :create)))
+        (princ (prettify-ping ping-object) stream)
         (princ #\newline stream)
         (close stream)))
 
