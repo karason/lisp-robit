@@ -28,7 +28,7 @@
 (defun say (message)
     (cond
         ((eq message 'nil) 'nil)
-        (t (privmsg *connection* *channel* (string message)))))
+        (t (privmsg *connection* *channel* message))))
 
 (defun ping-hook (ping)
     (let
@@ -53,7 +53,7 @@
 
 (defun log-ping (ping-object)
     (let 
-        ((stream (open "/home/karason/robit/think.log" :direction :output :if-exists :append)))
+        ((stream (open "/home/karason/robit/logs/think.log" :direction :output :if-exists :append :if-does-not-exist :create)))
         (princ (ping-date ping-object) stream)
         (princ " <" stream)
         (princ (ping-nick ping-object) stream)
