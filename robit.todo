@@ -1,5 +1,6 @@
 #todo for robit.lisp
 
+annotate!
 ignore-errors -> handler-case (catch errors and send relevant ones back to caller) 
     (http://www.lispworks.com/documentation/HyperSpec/Body/m_hand_1.htm)
 parallel-evaluate (allow for multithreading)
