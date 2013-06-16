@@ -10,7 +10,7 @@
 
 (in-package :robit)
 
-(defparameter *nick* "rk[imposter]")
+(defparameter *nick* "robit")
 
 (defparameter *server* "irc.freenode.net")
 
