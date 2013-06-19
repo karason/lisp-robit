@@ -10,7 +10,9 @@
 
 (in-package :robit)
 
-(defparameter *nick* "robit")
+(defparameter *path* "/home/karason/robit/")
+
+(defparameter *nick* "rk[imposter]")
 
 (defparameter *server* "irc.freenode.net")
 
@@ -22,13 +24,19 @@
             :nickname *nick*
             :server *server*)) 
     (join *connection* *channel*)
+    (say "ima robit.")
     (add-hook *connection* 'irc::irc-privmsg-message 'ping-hook)
     (ping-loop))
 
 (defun say (message)
     (cond
         ((eq message 'nil) 'nil)
-        (t (privmsg *connection* *channel* message))))
+        (t 
+            (let
+                ((current-ping
+                    (make-ping (get-universal-time) *nick* message)))
+                (log-ping current-ping)
+                (privmsg *connection* *channel* message)))))
 
 (defun ping-hook (ping)
     (let
@@ -83,7 +91,15 @@
 (defun log-ping (ping-object)
     (let 
         ((stream 
-            (open "/home/karason/robit/logs/think.log" :direction :output :if-exists :append :if-does-not-exist :create)))
+            (open 
+                (concatenate 'string 
+                    *path*
+                    "/logs/"
+                    *channel*
+                    ".log")
+                :direction :output 
+                :if-exists :append 
+                :if-does-not-exist :create)))
         (princ (prettify-ping ping-object) stream)
         (princ #\newline stream)
         (close stream)))
