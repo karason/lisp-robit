@@ -25,6 +25,7 @@
             :nickname *nick*
             :server *server*))
     (join *connection* *channel*)
+    (log-today)
     (say "ima robit.")
     (add-hook *connection* 'irc::irc-privmsg-message 'ping-hook)
     (ping-loop))
@@ -75,6 +76,7 @@
                 ((hour
                     (nth 2 date-list)))
                 (cond
+                  ;; if there's a single digit time- make it double
                     ((< hour 10)
                         (concatenate 'string
                         "0"
@@ -85,7 +87,8 @@
                 ((minute
                     (nth 1 date-list)))
                 (cond
-                    ((< minute 10) 
+                  ;; if there's a single digit time- make it double
+                    ((< minute 10)
                         (concatenate 'string
                         "0"
                         (write-to-string minute)))
@@ -95,21 +98,46 @@
             "> "
             (ping-message ping-object))))
 
-(defun log-ping (ping-object)
-    (let 
-        ((stream 
-            (open 
-                (concatenate 'string 
-                    *path*
-                    "/logs/"
-                    *channel*
-                    ".log")
-                :direction :output 
-                :if-exists :append 
+(defun get-log-file-name ()
+  (concatenate 'string
+               *path*
+               "/logs/"
+               *channel*
+               ".log"))
+
+(defun log-today ()
+    (let
+      ((date-list
+		 (multiple-value-list (get-decoded-time)))
+	   (stream
+         (open (get-log-file-name)
+               :direction :output
+               :if-exists :append
+               :if-does-not-exist :create)))
+	  (let
+	   ((today
+		  (concatenate 'string
+					   (write-to-string (nth 5 date-list))
+					   "/"
+					   (write-to-string (nth 4 date-list))
+					   "/"
+					   (write-to-string (nth 3 date-list)))))
+      (princ today stream)
+      (princ #\newline stream)
+      (close stream))))
+
+(defun log-ping (ping-object)		; would we consider moving all logging functions
+    (let							; to another file?
+        ((stream
+            (open (get-log-file-name)
+                :direction :output
+                :if-exists :append
                 :if-does-not-exist :create)))
         (princ (prettify-ping ping-object) stream)
         (princ #\newline stream)
         (close stream)))
+
+
 
 (defun evaluate-ping (ping-object)
     (evaluate-message (ping-message ping-object)))
@@ -117,9 +145,9 @@
 (defun evaluate-message (message)
     (cond 
         ((search "(" message)
-            (cond 
-                ((search ")" message :from-end t) 
-                    (write-to-string (ignore-errors (eval (read-from-string 
+            (cond
+                ((search ")" message :from-end t)
+                    (write-to-string (ignore-errors (eval (read-from-string
                         (subseq message (search "(" message) (+ 1 (search ")" message :from-end t))))))))
                 (t nil)))
         (t nil)))
