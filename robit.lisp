@@ -1,22 +1,6 @@
 ;robit.lisp
 
-(load "/home/karason/quicklisp/setup.lisp")
-
-(ql:quickload "cl-irc")
-
-(defpackage :robit
-    (:use :common-lisp :irc)
-    (:export boot))
-
 (in-package :robit)
-
-(defparameter *path* "/home/karason/robit/")
-
-(defparameter *nick* "rk[imposter]")
-
-(defparameter *server* "irc.freenode.net")
-
-(defparameter *channel* "#think")
 
 (defun boot ()
     (defparameter *connection*
