@@ -1,7 +1,7 @@
 ;;;; .robitrc.lisp- the initilization file for robit.lisp
 
 ;;; load quicklisp system
-(load "/home/chris/quicklisp/setup.lisp")
+(load "/home/karason/quicklisp/setup.lisp")
 
 ;;; load cl-irc library
 (ql:quickload "cl-irc")
@@ -15,13 +15,14 @@
 (in-package :robit)
 
 ;;; set path directory for robit
-(defparameter *path* "/home/chris/workspace/robit/")
+(defparameter *path* "/home/karason/robit/")
 
 ;;; set nick of robit
-(defparameter *nick* "robit-czl")
+(defparameter *nick* "robit")
 
 ;;; set server of robit
 (defparameter *server* "irc.freenode.net")
 
-;;; set channel of robit
-(defparameter *channel* "#think")
+;;; set channels of robit
+(defparameter *channels* 
+    (list "#think"))

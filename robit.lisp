@@ -24,49 +24,62 @@
         (connect
             :nickname *nick*
             :server *server*))
-    (join *connection* *channel*)
-    (log-today)
-    (say "ima robit.")
+    (labels 
+        ((join-all (channels)
+            (cond
+                ((eq channels 'nil) 'nil)
+                (t
+                    (join *connection* (car channels))
+                    (join-all (cdr channels))))))
+        (join-all *channels*))
+    ;(say "ima robit.")
     (add-hook *connection* 'irc::irc-privmsg-message 'ping-hook)
     (ping-loop))
 
-;;; say- allows creation of mesages
-(defun say (message)
+;;; say- echo message to channel 
+(defun say (channel message)
     (cond
         ((eq message 'nil) 'nil)
         (t
             (let
                 ((current-ping
-                    (make-ping (get-universal-time) *nick* message)))
+                    (make-ping (get-universal-time) channel *nick* message)))
                 (log-ping current-ping)
-                (privmsg *connection* *channel* message)))))
+                (privmsg *connection* channel message)))))
 
+;;; ping hook- create a log and response hook for incoming ping
 (defun ping-hook (ping)
     (let
         ((current-ping
-            (make-ping (get-universal-time) (source ping) (car (last (arguments ping))))))
+            (make-ping (get-universal-time) (first (arguments ping)) (source ping) (car (last (arguments ping))))))
         (log-ping current-ping)
-        (say (evaluate-ping current-ping))))
+        (say (ping-channel current-ping) (evaluate-ping current-ping))))
+
+;;; ping loop- read messages on the connection
+(defun ping-loop ()
+    (read-message-loop *connection*))
 
 ;;; the PING class
 ;;; 	Used for events and incoming messages
 (defclass ping ()
-    ((date :accessor ping-date
-           :initarg :date)
-     (nick :accessor ping-nick
-           :initarg :nick)
-     (message :accessor ping-message
-              :initarg :message)))
+    ((date 
+        :accessor ping-date
+        :initarg :date)
+     (channel 
+        :accessor ping-channel
+        :initarg :channel)
+     (nick 
+        :accessor ping-nick
+        :initarg :nick)
+     (message 
+        :accessor ping-message
+        :initarg :message)))
 
-;;; constructor
-(defun make-ping (date nick message)
-    (make-instance 'ping :date date :nick nick :message message))
+;;; make ping- constructor for ping object
+(defun make-ping (date channel nick message)
+    (make-instance 'ping :date date :channel channel :nick nick :message message))
 
-;;; ping loop reads messages on the connection
-(defun ping-loop ()
-    (read-message-loop *connection*))
-
-;;; create pretty output from a ping object
+;;; prettify ping- create pretty output from a ping object
 (defun prettify-ping (ping-object)
     (let
         ((date-list
@@ -76,68 +89,86 @@
                 ((hour
                     (nth 2 date-list)))
                 (cond
-                  ;; if there's a single digit time- make it double
+                    ;; if there's a single digit hour- make it double
                     ((< hour 10)
                         (concatenate 'string
-                        "0"
-                        (write-to-string hour)))
+                            "0"
+                            (write-to-string hour)))
                     (t (write-to-string hour))))
             ":"
             (let
                 ((minute
                     (nth 1 date-list)))
                 (cond
-                  ;; if there's a single digit time- make it double
+                    ;; if there's a single digit minute- make it double
                     ((< minute 10)
                         (concatenate 'string
-                        "0"
-                        (write-to-string minute)))
+                            "0"
+                            (write-to-string minute)))
                     (t (write-to-string minute))))
+            ":"
+            (let
+                ((sec
+                    (nth 0 date-list)))
+                (cond
+                    ;; if there's a single digit second- make it double
+                    ((< sec 10)
+                        (concatenate 'string
+                            "0"
+                            (write-to-string sec)))
+                    (t (write-to-string sec))))
             " <"
             (ping-nick ping-object)
             "> "
             (ping-message ping-object))))
 
-(defun get-log-file-name ()
-  (concatenate 'string
-               *path*
-               "/logs/"
-               *channel*
-               ".log"))
-
-(defun log-today ()
+(defun prettify-date (date)
     (let
-      ((date-list
-		 (multiple-value-list (get-decoded-time)))
-	   (stream
-         (open (get-log-file-name)
-               :direction :output
-               :if-exists :append
-               :if-does-not-exist :create)))
-	  (let
-	   ((today
-		  (concatenate 'string
-					   (write-to-string (nth 5 date-list))
-					   "/"
-					   (write-to-string (nth 4 date-list))
-					   "/"
-					   (write-to-string (nth 3 date-list)))))
-      (princ today stream)
-      (princ #\newline stream)
-      (close stream))))
+        ((date-list
+            (multiple-value-list (decode-universal-time date))))
+        (concatenate 'string 
+            (write-to-string (nth 5 date-list))
+            "-"
+            (let
+                ((month
+                    (nth 4 date-list)))
+                (cond
+                    ;; if there's a single digit month- make it double
+                    ((< month 10) 
+                        (concatenate 'string
+                            "0"
+                            (write-to-string month)))
+                    (t (write-to-string month))))
+            "-"
+            (let
+                ((day
+                    (nth 3 date-list)))
+                (cond ;; if there's a single digit day- make it double
+                    ((< day 10) 
+                        (concatenate 'string
+                            "0"
+                            (write-to-string day)))
+                    (t (write-to-string day)))))))
+
+(defun get-log-path (ping-object)
+    (concatenate 'string
+        *path*
+        "/logs/"
+        (ping-channel ping-object)
+        "/"
+        (prettify-date (ping-date ping-object))
+        ".log"))
 
 (defun log-ping (ping-object)		; would we consider moving all logging functions
     (let							; to another file?
-        ((stream
-            (open (get-log-file-name)
+        ((stream                    ; -we would consider.
+            (open (get-log-path ping-object)
                 :direction :output
                 :if-exists :append
                 :if-does-not-exist :create)))
         (princ (prettify-ping ping-object) stream)
         (princ #\newline stream)
         (close stream)))
-
-
 
 (defun evaluate-ping (ping-object)
     (evaluate-message (ping-message ping-object)))
