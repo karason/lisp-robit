@@ -24,6 +24,13 @@
         (connect
             :nickname *nick*
             :server *server*))
+    (cond
+        (*password*
+            (privmsg *connection* "nickserv"
+                (concatenate 'string
+                    "identify "
+                    *password*)))
+        (t 'nil))
     (labels 
         ((join-all (channels)
             (cond
@@ -32,7 +39,7 @@
                     (join *connection* (car channels))
                     (join-all (cdr channels))))))
         (join-all *channels*))
-    (say-all *channels* "ima robit")
+    (say-all *channels* "ima robit.")
     (add-hook *connection* 'irc::irc-privmsg-message 'ping-hook)
     (ping-loop))
 

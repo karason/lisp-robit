@@ -20,6 +20,9 @@
 ;;; set nick of robit
 (defparameter *nick* "robit")
 
+;;; set password of robit
+(defparameter *password* 'nil)
+
 ;;; set server of robit
 (defparameter *server* "irc.freenode.net")
 
