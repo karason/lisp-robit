@@ -15,7 +15,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+;;; change scope to :robit namespace
 (in-package :robit)
 
 ;;; startup sequence- connect to a server
@@ -32,7 +32,7 @@
                     (join *connection* (car channels))
                     (join-all (cdr channels))))))
         (join-all *channels*))
-    ;(say "ima robit.")
+    (say-all *channels* "ima robit")
     (add-hook *connection* 'irc::irc-privmsg-message 'ping-hook)
     (ping-loop))
 
@@ -46,6 +46,14 @@
                     (make-ping (get-universal-time) channel *nick* message)))
                 (log-ping current-ping)
                 (privmsg *connection* channel message)))))
+
+;;; say all- echo message to list of channels
+(defun say-all (channels message)
+    (cond
+        ((eq channels 'nil) 'nil)
+        (t
+            (say (car channels) message)
+            (say-all (cdr channels) message))))
 
 ;;; ping hook- create a log and response hook for incoming ping
 (defun ping-hook (ping)
