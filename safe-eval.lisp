@@ -1,16 +1,19 @@
-(defparameter safe-commands
+(defparameter arithm
   (list '+ '- '* '/))
 
-(defmacro is-safe (sexp)
-  ;; check if nil
-  (if sexp
-      (if (atom (car sexp))
-          (if (member (car sexp) safe-commands)
-             (is-safe (cdr sexp))
-            nil)
-        (and (is-safe (car sexp)) (is-safe (cdr sexp))))
-    ;; if nil it's safe 
-    T))
+(defun is-safe? (sexp safe-commands)
+  (cond 
+	((eq sexp nil)
+		T)
 
-(defmacro safe-eval (sexp)
-  (if (is-safe? sexp) (eval sexp) ("No hax allowed")) 
+	((atom sexp) 
+	 (member sexp safe-commands))
+
+	((atom (car sexp))
+		(and (member (car sexp) safe-commands) 
+			 (is-safe? (cdr sexp))) )
+
+	(T 
+	  (and (is-safe? (car sexp))
+		   (is-safe? (cdr sexp))))))
+	 
