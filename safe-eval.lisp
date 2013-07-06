@@ -11,9 +11,9 @@
 
 	((atom (car sexp))
 		(and (member (car sexp) safe-commands) 
-			 (is-safe? (cdr sexp))) )
+			 (is-safe? (cdr sexp) safe-commands)) )
 
 	(T 
-	  (and (is-safe? (car sexp))
-		   (is-safe? (cdr sexp))))))
+	  (and (is-safe? (car sexp) safe-commands)
+		   (is-safe? (cdr sexp) safe-commands)))))
 	 
