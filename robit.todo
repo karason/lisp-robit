@@ -6,10 +6,12 @@ ignore-errors -> handler-case (catch errors and send relevant ones back to calle
 parallel-evaluate (allow for multithreading)
     (http://cl-cookbook.sourceforge.net/process.html)
 sandbox-evaluate
-    #known secruity vulernabilities
+    #known secruity vulnerabilities
         calling shell scripts
         infinite loops? (likely handled by parallel processing)
-capture output from shell
 deboot function (add ability to disconnect/reconnect)
+visibility of caller and channel in eval
+add flag for turning on/off logging
+allow ability to join >1 irc network
 fix bugs
     see robit.bugs
