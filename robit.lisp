@@ -1,4 +1,4 @@
-;;;; robit.lisp- an internet relay chat automaton defined in common lisp.
+;;;; robit.lisp— an internet relay chat automaton defined in common lisp.
 
 ;;; Copyright (C) 2013 Chris Wallace and Ryan Karason
 ;;;
@@ -43,7 +43,7 @@
     (add-hook *connection* 'irc::irc-privmsg-message 'ping-hook)
     (ping-loop))
 
-;;; say- echo message to channel 
+;;; say— echo message to channel 
 (defun say (channel message)
     (cond
         ((eq message 'nil) 'nil)
@@ -54,7 +54,7 @@
                 (log-ping current-ping)
                 (privmsg *connection* channel message)))))
 
-;;; say all- echo message to list of channels
+;;; say all— echo message to list of channels
 (defun say-all (channels message)
     (cond
         ((eq channels 'nil) 'nil)
@@ -62,20 +62,30 @@
             (say (car channels) message)
             (say-all (cdr channels) message))))
 
-;;; ping hook- create a log and response hook for incoming ping
+;;; act— echo action to channel
+(defun act (channel action)
+    (privmsg *connection* channel (format nil "~A~A~A~A" #\Soh "ACTION " action #\Soh)))
+
+;;; ping-hook— create a log and response hook for incoming ping
 (defun ping-hook (ping)
     (let
         ((current-ping
-            (make-ping (get-universal-time) (first (arguments ping)) (source ping) (car (last (arguments ping))))))
+            (make-ping 
+                (get-universal-time) 
+                (cond 
+                    ((equal (first (arguments ping)) *nick*) (source ping)) 
+                    (t (first (arguments ping)))) 
+                (source ping) 
+                (car (last (arguments ping))))))
         (log-ping current-ping)
         (say (ping-channel current-ping) (evaluate-ping current-ping))))
 
-;;; ping loop- read messages on the connection
+;;; ping-loop— read messages on the connection
 (defun ping-loop ()
     (read-message-loop *connection*))
 
 ;;; the PING class
-;;; 	Used for events and incoming messages
+;;;     used for events and incoming messages
 (defclass ping ()
     ((date 
         :accessor ping-date
@@ -90,81 +100,47 @@
         :accessor ping-message
         :initarg :message)))
 
-;;; make ping- constructor for ping object
+;;; make-ping— constructor for ping object
 (defun make-ping (date channel nick message)
     (make-instance 'ping :date date :channel channel :nick nick :message message))
 
-;;; prettify ping- create pretty output from a ping object
+;;; number-to-string— convert number to string with padding
+(defun number-to-string (digits)
+    (cond
+        ((< digits 10)
+            ;; pad single digit with leading zero
+            (concatenate 'string "0" (write-to-string digits)))
+        (t (write-to-string digits))))
+
+;;; prettify-ping— create pretty output from a ping object
 (defun prettify-ping (ping-object)
     (let
         ((date-list
             (multiple-value-list (decode-universal-time (ping-date ping-object)))))
         (concatenate 'string
-            (let
-                ((hour
-                    (nth 2 date-list)))
-                (cond
-                    ;; if there's a single digit hour- make it double
-                    ((< hour 10)
-                        (concatenate 'string
-                            "0"
-                            (write-to-string hour)))
-                    (t (write-to-string hour))))
+            (number-to-string (nth 2 date-list)) ; hours
             ":"
-            (let
-                ((minute
-                    (nth 1 date-list)))
-                (cond
-                    ;; if there's a single digit minute- make it double
-                    ((< minute 10)
-                        (concatenate 'string
-                            "0"
-                            (write-to-string minute)))
-                    (t (write-to-string minute))))
+            (number-to-string (nth 1 date-list)) ; minutes
             ":"
-            (let
-                ((sec
-                    (nth 0 date-list)))
-                (cond
-                    ;; if there's a single digit second- make it double
-                    ((< sec 10)
-                        (concatenate 'string
-                            "0"
-                            (write-to-string sec)))
-                    (t (write-to-string sec))))
+            (number-to-string (nth 0 date-list)) ; seconds
             " <"
             (ping-nick ping-object)
             "> "
             (ping-message ping-object))))
 
+;;; prettify-date— create pretty output from universal timestamp
 (defun prettify-date (date)
     (let
         ((date-list
             (multiple-value-list (decode-universal-time date))))
         (concatenate 'string 
-            (write-to-string (nth 5 date-list))
+            (write-to-string (nth 5 date-list)) ; year
             "-"
-            (let
-                ((month
-                    (nth 4 date-list)))
-                (cond
-                    ;; if there's a single digit month- make it double
-                    ((< month 10) 
-                        (concatenate 'string
-                            "0"
-                            (write-to-string month)))
-                    (t (write-to-string month))))
+            (number-to-string (nth 4 date-list)) ; month
             "-"
-            (let
-                ((day
-                    (nth 3 date-list)))
-                (cond ;; if there's a single digit day- make it double
-                    ((< day 10) 
-                        (concatenate 'string
-                            "0"
-                            (write-to-string day)))
-                    (t (write-to-string day)))))))
+            (number-to-string (nth 3 date-list))))) ; day
 
+;;; get-log-path— get full path for logging
 (defun get-log-path (ping-object)
     (concatenate 'string
         *path*
@@ -174,9 +150,13 @@
         (prettify-date (ping-date ping-object))
         ".log"))
 
-(defun log-ping (ping-object)		; would we consider moving all logging functions
-    (let							; to another file?
-        ((stream                    ; -we would consider.
+;;; log-ping— write a ping object to log file
+(defun log-ping (ping-object)
+    (ensure-directories-exist
+        (concatenate 'string 
+            *path* "/logs/" (ping-channel ping-object) "/"))
+    (let
+        ((stream
             (open (get-log-path ping-object)
                 :direction :output
                 :if-exists :append
@@ -185,9 +165,11 @@
         (princ #\newline stream)
         (close stream)))
 
+;;; evaluate-ping— evaluate a ping object
 (defun evaluate-ping (ping-object)
     (evaluate-message (ping-message ping-object)))
 
+;;; evaluate-message— evaluate a message
 (defun evaluate-message (message)
     (cond 
         ((search "(" message)
@@ -197,3 +179,27 @@
                         (subseq message (search "(" message) (+ 1 (search ")" message :from-end t))))))))
                 (t nil)))
         (t nil)))
+
+;;; auto-load all accessory modules
+(labels 
+    ((load-all (accessories)
+        (cond
+            ((eq accessories 'nil) 'nil)
+            (t
+                (load (concatenate 'string *path* "/modules/" (car accessories)))
+                (load-all (cdr accessories))))))
+    (in-package :cl-user)
+    (load-all *accessories*))
+
+;;; for repl
+(setq custom:*prompt-body* "")
+
+;;; print robit header to screen
+(progn
+    (format t "~%")
+    (format t "RRR   00  BBB  IIII TTTT~%")
+    (format t "R  R O  O B  B  II   TT~%")
+    (format t "RRR  O  O BBB   II   TT~%")
+    (format t "R R  O  O B  B  II   TT~%")
+    (format t "R  R  OO  BBB  IIII  TT~%")
+    (format t "~%"))
