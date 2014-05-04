@@ -1,16 +1,21 @@
 #manual for robit.lisp
 robit.lisp is an internet relay chat automaton defined in common lisp
 
-to execute robit.lisp load in a common lisp interpreter 
-    #CLISP is assumed 
-
-prerequisites for execution 
+#prerequisites for execution
+    common lisp interpreter (CLISP is assumed)
     quicklisp system
     cl-irc library
 
-whence loaded call (robit:boot) to begin
+#to execute robit
+    if .robitrc does not exist, 
+        evaluate eval-me.lisp #clisp eval-me.lisp
+    evaluate .robitrc && robit.lisp #clisp -i .robitrc -repl robit.lisp
+    whence loaded, 
+        call
+            (robit:boot) to begin IRC loop
+            or (in-package :robit) to begin hacking
 
 #for source see robit.lisp
-#for license see license.text
 #for todos see robit.todo
 #for bug report see robit.bugs
+#for license see LICENSE.txt
