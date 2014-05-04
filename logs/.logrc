@@ -1,0 +1,22 @@
+"clear all syntax
+syntax clear
+
+"time
+syntax match Identifier /[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/
+
+"channel
+syntax region Comment start=/#/ end=/ / oneline 
+
+"user
+syntax region Statement start=/</ end=/>/ oneline
+
+"hyperlink
+syntax region Type start=/www./ end=/[\n\ ]/
+syntax region Type start=/http:./ end=/[\n\ ]/
+syntax region Type start=/https:./ end=/[\n\ ]/
+
+"quote
+syntax region PreProc start=/"/ end=/"/ oneline
+
+"s-expression
+syntax match String /(.*)/
