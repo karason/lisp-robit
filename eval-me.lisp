@@ -1,7 +1,5 @@
 ;EVAL-ME.LISP: create configuration file for ROBIT.LISP
 
-(setq *load-verbose* 'nil)
-
 (princ "Path of robit? ")
 (defparameter *robit-path* 
     (read-line))
@@ -17,6 +15,12 @@
         :if-does-not-exist :create))
 
 (princ ";;;; robitrc.lisp- the initialization file for robit.lisp" stream)
+(princ #\newline stream)
+(princ #\newline stream)
+
+(princ ";;; suppess output of load" stream)
+(princ #\newline stream)
+(princ '(setq *load-verbose* 'nil) stream)
 (princ #\newline stream)
 (princ #\newline stream)
 
