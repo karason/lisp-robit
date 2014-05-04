@@ -1,5 +1,7 @@
 ;EVAL-ME.LISP: create configuration file for ROBIT.LISP
 
+(setq *load-verbose* 'nil)
+
 (princ "Path of robit? ")
 (defparameter *robit-path* 
     (read-line))
@@ -9,7 +11,7 @@
     (open
         (concatenate 'string 
             *robit-path*
-            ".robitrc")
+            "/.robitrc")
         :direction :output
         :if-exists :new-version
         :if-does-not-exist :create))
@@ -25,14 +27,20 @@
     `(load 
         ,(write-to-string (concatenate 'string 
             (read-line)
-             "setup.lisp")))
+             "/setup.lisp")))
     stream)
 (princ #\newline stream)
 (princ #\newline stream)
 
 (princ ";;; load cl-irc library" stream)
 (princ #\newline stream)
-(princ `(QL\:QUICKLOAD ,(write-to-string "cl-irc")) stream)
+(princ
+    `(with-open-file 
+        (*standard-output* ,(write-to-string "/dev/null")
+            \:direction \:output
+            \:if-exists \:supersede)
+        (QL\:QUICKLOAD ,(write-to-string "cl-irc"))) 
+    stream)
 (princ #\newline stream)
 (princ #\newline stream)
 
@@ -110,6 +118,20 @@
 (princ ";;; set channels of robit" stream)
 (princ #\newline stream)
 (princ `(defparameter *channels* ,(cons 'list (tokenize (read-line)))) stream)
+(princ #\newline stream)
+(princ #\newline stream)
+
+(princ ";;; set accessories of robit" stream)
+(princ #\newline stream)
+(princ "Auto-load accessory modules? ")
+(princ 
+    `(defparameter *accessories* 
+        ,(cond
+            ((equal (read-line) "yes")
+                (princ "Accessories of robit? ")
+                (cons 'list (tokenize (read-line))))
+            (t 'nil)))
+    stream)
 (princ #\newline stream)
 
 (close stream)
