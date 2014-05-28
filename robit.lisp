@@ -167,16 +167,27 @@
 
 ;;; evaluate-ping— evaluate a ping object
 (defun evaluate-ping (ping-object)
-    (evaluate-message (ping-message ping-object)))
+    (evaluate-message (ping-channel ping-object) (ping-nick ping-object) (ping-message ping-object)))
 
 ;;; evaluate-message— evaluate a message
-(defun evaluate-message (message)
+(defun evaluate-message (channel nick message)
     (cond 
         ((search "(" message)
             (cond
                 ((search ")" message :from-end t)
-                    (write-to-string (ignore-errors (eval (read-from-string
-                        (subseq message (search "(" message) (+ 1 (search ")" message :from-end t))))))))
+                    (write-to-string 
+                        (ignore-errors (eval 
+                            ;`(let ((*ping-channel* ,channel) (*ping-nick* ,nick)) 
+                            ;,(read-from-string (subseq message (search "(" message) (+ 1 (search ")" message :from-end t))))))))
+                            (read-from-string
+                                (concatenate 'string
+                                    "(let ((*ping-channel* "
+                                    (write-to-string channel)
+                                    ") (*ping-nick* "
+                                    (write-to-string nick)
+                                    ")) "
+                                    (subseq message (search "(" message) (+ 1 (search ")" message :from-end t)))
+                                    ")"))))))
                 (t nil)))
         (t nil)))
 
